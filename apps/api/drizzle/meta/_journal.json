@@ -50,6 +50,20 @@
       "when": 1794996314894,
       "tag": "0006_seal_journal_lines",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1795021137269,
+      "tag": "0007_bank_reconciliation",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1795022110755,
+      "tag": "0008_grouped_deposits",
+      "breakpoints": true
     }
   ]
 }

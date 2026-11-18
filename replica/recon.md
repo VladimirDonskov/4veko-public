@@ -57,6 +57,8 @@ workflows, not from 1C layouts:
 | S14 | Settings | /settings, /settings/members | org profile, close books, members | filled, error |
 | S15 | Audit log | /audit | who did what | filled |
 | S16 | Studio | /studio, /studio/new, /studio/app/[name] | check an application, review and publish its version, browse published metadata | empty, checking, diagnostics, migration review, stale revision, published, read-only |
+| S17 | Bank Reconciliation | /bank-reconciliations, /bank-reconciliations/[id] | import a statement, match transactions to dated bank postings, review outstanding items and close | empty, invalid CSV, unmatched, cleared, closed, reopened, read-only |
+| S18 | Bank Deposits | /deposits, /deposits/new, /deposits/[id] | review whole receipts and total, post a bank deposit, trace its source payments, correct an unmatched deposit | no available receipts, selected, posted, matched, void, read-only |
 
 ## Flows
 
@@ -75,6 +77,14 @@ F04 Invite a teammate and restrict access
     S14 add member with role -> member signs in -> viewer cannot post
 F05 Close the books
     S14 set books closed through date -> posting on/before date rejected
+F06 Procure to pay
+    purchase order -> receive -> vendor bill -> pay from bank account -> S12 inspect GL
+F07 Reconcile a bank statement
+    S17 import CSV -> match row to S12 bank posting -> review outstanding items -> close
+    next statement: clear an earlier check and retain its earlier outstanding status
+F08 Group customer receipts
+    record payments to Undeposited Funds -> S18 select receipts and review -> post deposit
+    S17 clear one bank transaction -> S18 inspect original receipts and linked journal
 ```
 
 ## Inferred data model (4VEKO's own, from standard accounting practice)
@@ -87,6 +97,10 @@ Item          sku, name, type inventory|non_inventory|service, price, accounts
 Account       number, name, type, subtype, normal balance, system flag
 JournalEntry  number, date, memo, source_type, source_id, reversal link
 JournalLine   account, debit, credit (numeric 18,2)
+BankStatement bank account, external reference, date range, opening and closing balances, status
+BankStatementLine statement, external transaction reference, date, signed amount, matched journal line
+Deposit       number, bank account, date, total, posted journal, reversal journal and effective date
+DepositPayment deposit, receipt, effective release date after a void
 SalesOrder    number, customer, status, lines
 Invoice       number, customer, sales_order, dates, totals, balance_due, status
 Payment       number, customer, amount, deposit account, applications
@@ -108,6 +122,6 @@ See `features.csv`. Must: 19, should: 13, could: 13, skip: 2.
 
 ## Size
 
-Screens 15, flows 5, entities ~16. Hard parts: posting correctness and
+This map lists 18 screen groups and 8 flows. Hard parts: posting correctness and
 immutability, concurrency on stock and payments, tenant isolation, audit.
 Size: L (a quarter) for a production-quality MVP; the first vertical slice is M.

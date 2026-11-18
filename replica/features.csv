@@ -21,13 +21,13 @@ Global search and command palette,platform,must,no,yes,our addition; not describ
 Purchase orders and vendor bills,procurement,should,yes,yes,POs and vendor invoices (S3); Release 0.2: receiving with three-way match and price variance
 Payables and bill payments,procurement,should,yes,yes,supplier settlements (S17); bill payments and historical AP aging; purchasing.test.ts and historical-aging.test.ts
 Multiple warehouses and transfers,inventory,should,yes,partial,schema and API support locations; UI uses one default warehouse; no transfers yet
-Bank reconciliation and bank import,cash,should,yes,no,bank exchange (S13)
+Bank reconciliation and bank import,cash,should,yes,partial,CSV import and one-to-one dated matching with close and reopen. OFX and direct bank exchange remain open (S13).
 Partial invoicing credit notes and quotes,sales,should,yes,no,inferred standard practice
 Sales tax by jurisdiction,tax,should,yes,no,tax calculation (S15) for Russian regimes; US engine via integration
 Custom fields on records,platform,should,yes,no,configuration objects low-code (S5)
 Approval workflows and spending limits,platform,should,yes,no,payment limits (S4)
 REST API with OpenAPI and webhooks,integration,should,yes,partial,REST + OpenAPI at /api/docs done; webhooks and API keys not built
-CSV import and export,integration,should,yes,partial,CSV export on reports only; no import
+CSV import and export,integration,should,yes,partial,Reports export CSV and bank statements import CSV. Master data imports remain open.
 Saved report views and export,reporting,should,yes,partial,saved table views (per browser) and report CSV/print; no server-side saved reports
 Document attachments,documents,should,yes,no,document management product (S11)
 Mobile-friendly access,platform,should,yes,partial,responsive web tested at phone width; no native app or offline mode

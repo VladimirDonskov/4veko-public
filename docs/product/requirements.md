@@ -42,6 +42,16 @@ that later modules build on. Feature evidence and priorities: `docs/research/fea
 | FR-18 | Vendor bills | from received lines (never more than received) and/or expense lines; price variance to its own account; duplicate vendor invoice numbers refused; void unpaid bills |
 | FR-19 | Bill payments and payables | pay several bills from a bank account; no over-payment; idempotent retries; AP aging; vendor balance equals aging; AP control account reconciles |
 
+## Release 0.2 banking
+
+| ID | Requirement | Acceptance criteria |
+| --- | --- | --- |
+| FR-20 | Reconcile a bank statement | An accountant imports the statement with stable line references, matches each bank transaction to one ledger line, explains outstanding items and closes a balanced period. Replaying the same import adds zero rows. An owner or admin can reopen a closed statement with an audit trail. |
+| FR-21 | Group customer receipts into a bank deposit | Post a selection of whole Undeposited Funds receipts into an active bank account. Retain the breakdown and original applications, prevent duplicate claims on retry or concurrent submission, and clear the deposit as one bank line. A dated reversal releases the receipts for a replacement deposit after any bank match has been removed. |
+
+The [B01–B05 acceptance gates](../testing/ecosystem-acceptance-criteria.md#bank-statement-reconciliation) describe the opening-balance assumption and the controls across consecutive statements.
+The [deposit acceptance gates](../testing/ecosystem-acceptance-criteria.md#grouped-bank-deposits) cover receipt eligibility, posting, correction and tracing.
+
 ## Non-functional requirements
 
 | ID | Requirement | Target | Status |

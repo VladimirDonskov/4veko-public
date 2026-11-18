@@ -1,7 +1,7 @@
 import { and, desc, eq, ilike, or, sql } from "drizzle-orm";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import { z } from "zod";
-import { accounts, invoices, parties, paymentApplications, payments } from "../../db/schema";
+import { accounts, depositPayments, deposits, invoices, parties, paymentApplications, payments } from "../../db/schema";
 import { requireOrg } from "../../lib/context";
 import { fromDatabaseError, notFound } from "../../lib/errors";
 import { isoDate, likePattern, optionalText, positiveMoney, uuidParam } from "../../lib/validation";
@@ -131,6 +131,12 @@ export const paymentRoutes: FastifyPluginAsyncZod = async (app) => {
       .innerJoin(invoices, eq(invoices.id, paymentApplications.invoiceId))
       .where(eq(paymentApplications.paymentId, row.payment.id))
       .orderBy(invoices.number);
-    return { ...row.payment, customerName: row.customerName, depositAccount: row.depositAccount, applications };
+    const depositHistory = await app.db.select({
+      id: deposits.id, number: deposits.number, date: deposits.date, status: deposits.status, voidDate: deposits.voidDate,
+    }).from(depositPayments)
+      .innerJoin(deposits, and(eq(deposits.organizationId, ctx.organizationId), eq(deposits.id, depositPayments.depositId)))
+      .where(and(eq(depositPayments.organizationId, ctx.organizationId), eq(depositPayments.paymentId, row.payment.id)))
+      .orderBy(desc(deposits.createdAt), desc(deposits.id));
+    return { ...row.payment, customerName: row.customerName, depositAccount: row.depositAccount, applications, deposits: depositHistory };
   });
 };

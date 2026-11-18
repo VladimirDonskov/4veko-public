@@ -1,7 +1,7 @@
 import { and, desc, eq, gte, ilike, lte, or, sql } from "drizzle-orm";
 import type { FastifyPluginAsyncZod } from "fastify-type-provider-zod";
 import { z } from "zod";
-import { accounts, journalEntries, journalLines, parties, users } from "../../db/schema";
+import { accounts, journalEntries, journalLines, journalSourceEnum, parties, users } from "../../db/schema";
 import { audit } from "../../lib/audit";
 import { requireOrg } from "../../lib/context";
 import { invalid, notFound } from "../../lib/errors";
@@ -27,9 +27,7 @@ export const journalRoutes: FastifyPluginAsyncZod = async (app) => {
           from: isoDate.optional(),
           to: isoDate.optional(),
           q: z.string().trim().max(200).optional(),
-          sourceType: z
-            .enum(["manual", "invoice", "invoice_void", "payment", "inventory_adjustment", "reversal"])
-            .optional(),
+          sourceType: z.enum(journalSourceEnum.enumValues).optional(),
           limit: z.coerce.number().int().min(1).max(500).default(100),
           offset: z.coerce.number().int().min(0).default(0),
         }),

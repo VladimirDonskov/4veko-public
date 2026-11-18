@@ -17,7 +17,9 @@ import { AppError, fromDatabaseError } from "./lib/errors";
 import { accountRoutes } from "./modules/accounts/routes";
 import { auditRoutes } from "./modules/audit/routes";
 import { authRoutes } from "./modules/auth/routes";
+import { bankReconciliationRoutes } from "./modules/bank-reconciliation/routes";
 import { dashboardRoutes } from "./modules/dashboard/routes";
+import { depositRoutes } from "./modules/deposits/routes";
 import { inventoryRoutes } from "./modules/inventory/routes";
 import { itemRoutes } from "./modules/items/routes";
 import { journalRoutes } from "./modules/ledger/routes";
@@ -140,6 +142,8 @@ export async function buildApp(opts: { config: Config; db: Db; logger?: boolean 
       await v1.register(partyRoutes);
       await v1.register(itemRoutes, { prefix: "/items" });
       await v1.register(accountRoutes, { prefix: "/accounts" });
+      await v1.register(bankReconciliationRoutes, { prefix: "/bank-reconciliations" });
+      await v1.register(depositRoutes, { prefix: "/deposits" });
       await v1.register(journalRoutes, { prefix: "/journal-entries" });
       await v1.register(salesOrderRoutes, { prefix: "/sales-orders" });
       await v1.register(invoiceRoutes, { prefix: "/invoices" });

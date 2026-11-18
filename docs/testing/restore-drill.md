@@ -6,6 +6,10 @@ The [verification SQL](../../apps/api/scripts/restore-fingerprint.sql) compared 
 
 A second drill used the same sized benchmark on the final 0006 schema. All 38 fingerprints matched between the source and the new restore, including the 2,319 journal seals. Both databases passed the balance assertion. Separately, upgrading a populated 0004 database to 0006 and rerunning the migrator preserved its journal headers and lines.
 
+The 0007 bank reconciliation drill used the fixture from the full API suite. It contained 18 statements, 1,017 imported lines, seven matched journal lines, seven closed statements and 5,109 journal entries. The 1,014,274-byte archive restored in 1.07 seconds on the local machine. All 40 fingerprints matched. The verification SQL also checked statement arithmetic and dates, completeness of closed statements, and agreement of amount, account and organization on every match.
+
+The 0008 deposit fixture contained 14 deposit documents, five voids, 517 receipt memberships and 5,651 journal entries. A 1,209,613-byte custom-format dump restored into a fresh PostgreSQL 18.6 database in 0.81 seconds. All 42 fingerprints matched. Both copies also passed checks for the receipt total and release date, the original bank and clearing entries, and the source, amount and direction of every deposit reversal.
+
 ## Reproduce on a disposable cluster
 
 Use a populated, quiescent ERP fixture and a fresh database name. Set the standard PostgreSQL connection variables (`PGHOST`, `PGPORT`, `PGUSER` and the local authentication configuration) for that cluster. Use PostgreSQL client utilities compatible with the server version.

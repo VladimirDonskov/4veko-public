@@ -46,7 +46,7 @@ only), **Planned** (designed or scoped, not built), **Research only** (studied, 
    | AP aging report, vendor balances and activity, dashboard payables tile, search | Tested |
    | Receipt reversal (returning goods to the vendor), vendor credits, partial-payment discounts | Planned |
 
-2. **Banking:** bank accounts, statement import (CSV/OFX), reconciliation, deposits from Undeposited Funds.
+2. **Banking.** CSV statement import and one-to-one matching against posted bank lines are implemented. A grouped deposit moves whole customer receipts from Undeposited Funds into the bank in one journal. The deposit can be traced from each receipt through the posted journal to its statement match. OFX and provider feeds remain separate integrations.
 3. **Sales depth:** quotes/estimates, partial invoicing, credit notes and refunds, invoice PDF and email.
 4. **Account lifecycle:** email invitations, verification, password reset, MFA.
 5. **Organization time zone** and fiscal-period management (period list instead of a single lock date).
@@ -76,12 +76,10 @@ Manufacturing scheduling/MES (1C:ERP depth, S2); holding consolidation with IFRS
 offline mobile apps (S14). Competitor user sentiment: only 9 developer comments collected;
 end-user reviews still to be gathered by hand (review sites block automated reading).
 
-## Checkpoint: where to pick up
+## Current handoff
 
-- **State (2026-10-28):** Release 0.1 committed (`1fd1682`); Release 0.2 item 1 (procure to pay)
-  built. All code builds; 66 API tests and 4 e2e tests pass; demo data includes a year of
-  purchasing; parity 68.5 (`replica/parity-score.md`).
-- **Not done:** no remote repository, so CI has never run; replica-brand and replica-launch not
-  run (product not yet market-ready); replica-deploy not run (needs your authorization and a host).
-- **Exact next step:** Release 0.2 item 2 (banking: bank accounts, statement import,
-  reconciliation, deposits from Undeposited Funds).
+The [engineering checkpoint](implementation-progress.md) tracks the verified release, working
+changes and remaining gates. The next core increment is **customer credit memos and partial returns**.
+Start with an original posted invoice, select the returned quantities and retain the original
+prices, tax and stock cost. Reconcile the credit with AR and the unaffected sale lines.
+See the [release sequence](full-ecosystem-roadmap.md#near-term-engineering-order).

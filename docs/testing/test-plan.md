@@ -67,14 +67,30 @@ requests 401; foreign Origin 403; no account enumeration on login; duplicate ema
 **F05 Close.** Books closed through a date block postings on and before it, in the API and the
 database; reopening works and is audited.
 
+**F07 Bank statement reconciliation.** Use existing cash postings on an active bank account.
+Import identical statements concurrently, handle changed or duplicate references, and exercise
+positive deposits, negative checks, wrong accounts, future dates and offsetting unmatched
+items. Close with outstanding book items, carry a check into the next period, then reopen and
+unmatch with an authorized user. The API fixture also clears actual customer and supplier
+payments and checks that both source records and the journal count are preserved. The browser
+fixture uses the import dialog, checks a historical statement on a phone viewport and runs axe.
+See the [scenario and named suites](ecosystem-acceptance-criteria.md#bank-statement-reconciliation).
+
+**F08 Grouped bank deposits.** Select receipts from two customers, post one bank journal line,
+trace the original payments and clear the deposit on a bank statement. Race two posting
+requests that share a receipt and race a void against a bank match. Verify that a dated
+reversal releases the receipts on the correction date and preserves the earlier bank view.
+Exercise invalid accounts, tenant roles, exact cent totals and posting to a closed period.
+See the [deposit gates and fixtures](ecosystem-acceptance-criteria.md#grouped-bank-deposits).
+
 ## Not tested yet (known gaps)
 
 - Manual screen-reader and keyboard-only passes; 200% zoom; forced-colors mode.
 - Browsers other than Chromium (Firefox, Safari/WebKit).
 - Load with many concurrent users; volumes above ~1,100 invoices.
-- Backup and restore; migration rollback; upgrade from an older schema with data.
+- Production-scale restoration, recovery from archived WAL and measurement of upgrade lock duration. The [restore drill](restore-drill.md) and migration suite cover isolated fixtures.
 - Rate-limit behaviour (no automated test); session expiry after 30 days.
 - Time zones: "today" uses the server's local date; no organization time zone yet.
-- Security testing beyond the cases above (no penetration test, no dependency scanning in CI).
+- Independent security review beyond the automated application tests and CI production dependency audit.
 
 Defect log: `replica/bugs.md`.

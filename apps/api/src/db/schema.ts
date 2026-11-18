@@ -45,6 +45,8 @@ export const journalSourceEnum = pgEnum("journal_source", [
   "bill_void",
   "bill_payment",
   "config_document",
+  "deposit",
+  "deposit_void",
 ]);
 export const salesOrderStatusEnum = pgEnum("sales_order_status", ["draft", "confirmed", "invoiced", "cancelled"]);
 export const invoiceStatusEnum = pgEnum("invoice_status", ["open", "partially_paid", "paid", "void"]);
@@ -341,6 +343,7 @@ export const journalLines = pgTable(
   },
   (t) => [
     unique("jl_entry_line_uq").on(t.journalEntryId, t.lineNo),
+    unique("jl_org_account_id_uq").on(t.organizationId, t.accountId, t.id),
     index("jl_org_account_idx").on(t.organizationId, t.accountId),
     index("jl_entry_idx").on(t.journalEntryId),
     check("jl_amounts_ck", sql`${t.debit} >= 0 and ${t.credit} >= 0 and ((${t.debit} = 0) <> (${t.credit} = 0))`),
@@ -364,6 +367,75 @@ export const journalLines = pgTable(
       name: "jl_party_fk",
       columns: [t.organizationId, t.partyId],
       foreignColumns: [parties.organizationId, parties.id],
+    }),
+  ],
+);
+
+// ------------------------------------------------------ bank reconciliation
+
+export const bankStatements = pgTable(
+  "bank_statements",
+  {
+    id: id(),
+    organizationId: orgId(),
+    accountId: uuid("account_id").notNull(),
+    externalId: text("external_id").notNull(),
+    startDate: date("start_date").notNull(),
+    endDate: date("end_date").notNull(),
+    // Accumulated balances can exceed the precision of an individual posting.
+    openingBalance: numeric("opening_balance", { precision: 24, scale: 2 }).notNull(),
+    closingBalance: numeric("closing_balance", { precision: 24, scale: 2 }).notNull(),
+    status: text("status").$type<"open" | "closed">().notNull().default("open"),
+    closedAt: timestamp("closed_at", { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique("bs_org_account_id_uq").on(t.organizationId, t.accountId, t.id),
+    unique("bs_org_account_reference_uq").on(t.organizationId, t.accountId, t.externalId),
+    unique("bs_org_account_end_uq").on(t.organizationId, t.accountId, t.endDate),
+    check("bs_reference_ck", sql`btrim(${t.externalId}) <> ''`),
+    check("bs_period_ck", sql`${t.startDate} <= ${t.endDate}`),
+    check("bs_balances_ck", sql`${t.openingBalance} <> 'NaN'::numeric and ${t.closingBalance} <> 'NaN'::numeric`),
+    check(
+      "bs_close_ck",
+      sql`(${t.status} = 'open' and ${t.closedAt} is null) or (${t.status} = 'closed' and ${t.closedAt} is not null)`,
+    ),
+    foreignKey({
+      name: "bs_account_fk",
+      columns: [t.organizationId, t.accountId],
+      foreignColumns: [accounts.organizationId, accounts.id],
+    }),
+  ],
+);
+
+export const bankStatementLines = pgTable(
+  "bank_statement_lines",
+  {
+    id: id(),
+    organizationId: orgId(),
+    accountId: uuid("account_id").notNull(),
+    statementId: uuid("statement_id").notNull(),
+    externalId: text("external_id").notNull(),
+    date: date("date").notNull(),
+    description: text("description").notNull(),
+    amount: money("amount").notNull(),
+    journalLineId: uuid("journal_line_id"),
+  },
+  (t) => [
+    unique("bsl_org_account_reference_uq").on(t.organizationId, t.accountId, t.externalId),
+    unique("bsl_journal_line_uq").on(t.journalLineId),
+    index("bsl_org_statement_date_idx").on(t.organizationId, t.statementId, t.date),
+    check("bsl_reference_ck", sql`btrim(${t.externalId}) <> ''`),
+    check("bsl_amount_ck", sql`${t.amount} <> 0 and ${t.amount} <> 'NaN'::numeric`),
+    foreignKey({
+      name: "bsl_statement_fk",
+      columns: [t.organizationId, t.accountId, t.statementId],
+      foreignColumns: [bankStatements.organizationId, bankStatements.accountId, bankStatements.id],
+    }),
+    foreignKey({
+      name: "bsl_journal_line_fk",
+      columns: [t.organizationId, t.accountId, t.journalLineId],
+      foreignColumns: [journalLines.organizationId, journalLines.accountId, journalLines.id],
     }),
   ],
 );
@@ -597,6 +669,85 @@ export const paymentApplications = pgTable(
       name: "pa_invoice_fk",
       columns: [t.organizationId, t.invoiceId],
       foreignColumns: [invoices.organizationId, invoices.id],
+    }),
+  ],
+);
+
+// -------------------------------------------------------- grouped deposits
+
+export const deposits = pgTable(
+  "deposits",
+  {
+    id: id(),
+    organizationId: orgId(),
+    number: text("number").notNull(),
+    date: date("date").notNull(),
+    bankAccountId: uuid("bank_account_id").notNull(),
+    amount: money("amount").notNull(),
+    memo: text("memo"),
+    idempotencyKey: text("idempotency_key"),
+    journalEntryId: uuid("journal_entry_id").notNull(),
+    status: text("status").$type<"posted" | "void">().notNull().default("posted"),
+    voidDate: date("void_date"),
+    voidReason: text("void_reason"),
+    voidJournalEntryId: uuid("void_journal_entry_id"),
+    createdBy: uuid("created_by").references(() => users.id, { onDelete: "set null" }),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique("dep_org_id_uq").on(t.organizationId, t.id),
+    unique("dep_org_number_uq").on(t.organizationId, t.number),
+    unique("dep_journal_uq").on(t.journalEntryId),
+    unique("dep_void_journal_uq").on(t.voidJournalEntryId),
+    uniqueIndex("dep_org_idem_uq").on(t.organizationId, t.idempotencyKey).where(sql`${t.idempotencyKey} is not null`),
+    index("dep_org_date_idx").on(t.organizationId, t.date),
+    check("dep_amount_ck", sql`${t.amount} > 0 and ${t.amount} <> 'NaN'::numeric`),
+    check("dep_status_ck", sql`
+      (${t.status} = 'posted' and ${t.voidDate} is null and ${t.voidJournalEntryId} is null and ${t.voidReason} is null)
+      or (${t.status} = 'void' and ${t.voidDate} is not null and ${t.voidDate} >= ${t.date}
+        and ${t.voidJournalEntryId} is not null and ${t.voidJournalEntryId} <> ${t.journalEntryId}
+        and ${t.voidReason} is not null and btrim(${t.voidReason}) <> '')
+    `),
+    foreignKey({
+      name: "dep_bank_fk",
+      columns: [t.organizationId, t.bankAccountId],
+      foreignColumns: [accounts.organizationId, accounts.id],
+    }),
+    foreignKey({
+      name: "dep_journal_fk",
+      columns: [t.organizationId, t.journalEntryId],
+      foreignColumns: [journalEntries.organizationId, journalEntries.id],
+    }),
+    foreignKey({
+      name: "dep_void_journal_fk",
+      columns: [t.organizationId, t.voidJournalEntryId],
+      foreignColumns: [journalEntries.organizationId, journalEntries.id],
+    }),
+  ],
+);
+
+// Keep original membership after a void. The active claim is exclusive across deposits.
+export const depositPayments = pgTable(
+  "deposit_payments",
+  {
+    organizationId: orgId(),
+    depositId: uuid("deposit_id").notNull(),
+    paymentId: uuid("payment_id").notNull(),
+    releasedOn: date("released_on"),
+  },
+  (t) => [
+    primaryKey({ columns: [t.depositId, t.paymentId] }),
+    uniqueIndex("dp_active_payment_uq").on(t.paymentId).where(sql`${t.releasedOn} is null`),
+    index("dp_org_payment_idx").on(t.organizationId, t.paymentId),
+    foreignKey({
+      name: "dp_deposit_fk",
+      columns: [t.organizationId, t.depositId],
+      foreignColumns: [deposits.organizationId, deposits.id],
+    }),
+    foreignKey({
+      name: "dp_payment_fk",
+      columns: [t.organizationId, t.paymentId],
+      foreignColumns: [payments.organizationId, payments.id],
     }),
   ],
 );

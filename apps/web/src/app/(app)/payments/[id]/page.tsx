@@ -22,6 +22,7 @@ type Payment = {
   depositAccount: string;
   journalEntryId: string;
   applications: { invoiceId: string; number: string; issueDate: string; total: string; amount: string }[];
+  deposits: { id: string; number: string; date: string; status: string; voidDate: string | null }[];
 };
 
 export default function PaymentPage({ params }: { params: Promise<{ id: string }> }) {
@@ -71,6 +72,15 @@ export default function PaymentPage({ params }: { params: Promise<{ id: string }
             )}
           </Card>
           <LedgerImpact entryId={p.journalEntryId} />
+          {p.deposits?.length > 0 && <Card>
+            <CardHeader title="Bank deposit history" />
+            <ul className="divide-y divide-border text-sm">
+              {p.deposits.map((deposit) => <li key={deposit.id} className="flex flex-wrap items-center justify-between gap-2 px-4 py-2">
+                <Link href={`/deposits/${deposit.id}`} className="inline-block py-1 font-medium text-accent underline">{deposit.number}</Link>
+                <span>{date(deposit.date)}{deposit.voidDate ? ` · Voided ${date(deposit.voidDate)}` : ""}</span>
+              </li>)}
+            </ul>
+          </Card>}
         </div>
         <Card className="p-4">
           <DescriptionList
@@ -80,7 +90,7 @@ export default function PaymentPage({ params }: { params: Promise<{ id: string }
               { label: "Date", value: date(p.date) },
               { label: "Method", value: p.method.toUpperCase() },
               { label: "Reference", value: p.reference },
-              { label: "Deposited to", value: p.depositAccount },
+              { label: "Receipt account", value: p.depositAccount },
             ]}
           />
           {p.memo && <p className="mt-3 border-t border-border pt-3 text-sm text-muted">{p.memo}</p>}

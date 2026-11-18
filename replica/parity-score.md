@@ -2,9 +2,9 @@
 
 This score covers the rows and priorities in [features.csv](features.csv). The [ecosystem matrix](../docs/product/1c-functional-parity.md) and [financial acceptance gates](../docs/testing/ecosystem-acceptance-criteria.md) track the broader mission. The inventory assigns half credit to partial implementations. It measures neither production readiness nor full ecosystem parity.
 
-## Parity: 68.9 / 100
+## Parity: 70.0 / 100
 
-features 68.9  (45 counted, must-haves 18 of 18 done)
+features 70.0  (45 counted, must-haves 18 of 18 done)
 
 ## By area, weakest first
 - tax                            0.0  (1 features)
@@ -18,23 +18,23 @@ features 68.9  (45 counted, must-haves 18 of 18 done)
 - projects                       0.0  (1 features)
 - integration                   50.0  (2 features)
 - platform                      57.7  (6 features)
-- cash                          60.0  (2 features)
 - sales                         75.0  (3 features)
 - inventory                     77.8  (4 features)
 - accounting                    80.0  (7 features)
+- cash                          80.0  (2 features)
 - reporting                     92.3  (5 features)
 - onboarding                   100.0  (1 features)
 - master data                  100.0  (3 features)
 - procurement                  100.0  (2 features)
 
 ## Missing, in build order
-- [should] cash: Bank reconciliation and bank import, no  (bank exchange (S13))
 - [should] documents: Document attachments, no  (document management product (S11))
 - [should] platform: Approval workflows and spending limits, no  (payment limits (S4))
 - [should] platform: Custom fields on records, no  (configuration objects low-code (S5))
 - [should] sales: Partial invoicing credit notes and quotes, no  (inferred standard practice)
 - [should] tax: Sales tax by jurisdiction, no  (tax calculation (S15) for Russian regimes; US engine via integration)
-- [should] integration: CSV import and export, partial  (CSV export on reports only; no import)
+- [should] cash: Bank reconciliation and bank import, partial  (CSV import and one-to-one dated matching with close and reopen. OFX and direct bank exchange remain open (S13).)
+- [should] integration: CSV import and export, partial  (Reports export CSV and bank statements import CSV. Master data imports remain open.)
 - [should] integration: REST API with OpenAPI and webhooks, partial  (REST + OpenAPI at /api/docs done; webhooks and API keys not built)
 - [should] inventory: Multiple warehouses and transfers, partial  (schema and API support locations; UI uses one default warehouse; no transfers yet)
 - [should] platform: Mobile-friendly access, partial  (responsive web tested at phone width; no native app or offline mode)

@@ -7,6 +7,8 @@ export type Permission =
   | "masterdata.write"
   | "accounts.write"
   | "journal.post"
+  | "bank.reconcile"
+  | "bank.reopen"
   | "sales.write"
   | "invoice.post"
   | "invoice.void"
@@ -25,6 +27,8 @@ const ALL: Permission[] = [
   "masterdata.write",
   "accounts.write",
   "journal.post",
+  "bank.reconcile",
+  "bank.reopen",
   "sales.write",
   "invoice.post",
   "invoice.void",
@@ -47,6 +51,7 @@ export const ROLE_PERMISSIONS: Record<Role, ReadonlySet<Permission>> = {
     "masterdata.write",
     "accounts.write",
     "journal.post",
+    "bank.reconcile",
     "sales.write",
     "invoice.post",
     "invoice.void",

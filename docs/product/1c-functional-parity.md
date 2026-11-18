@@ -2,7 +2,7 @@
 
 Use the [capability matrix](ecosystem-capabilities.csv) to find a 4VEKO feature, its prerequisite, priority, implementation boundary, comparison source, acceptance evidence and next engineering action. It covers the ERP, the extension platform and the applications that rely on them. The domain letters A–R follow the product brief. A row describes one independently checkable outcome. Dependencies refer to module owners in the [dependency map](module-dependency-map.md).
 
-The snapshot includes the local changes on top of `980c832`. Its ERP evidence comes from Fastify routes, Drizzle constraints and the Next.js application. The TypeScript configuration runtime can use ERP posting APIs. The Java platform and its Rust worker own a separate application store. A real Studio browser session exercised checking and publishing source through the gateway, handling a stale draft and limiting a viewer to published metadata. See the [architecture decision](../vekoscript/adr/0002-java-platform-scope.md) and the [engineering checkpoint](implementation-progress.md).
+The bank statement increment builds on `a5abd98`. ERP evidence comes from Fastify routes, Drizzle constraints and the Next.js application. The TypeScript configuration runtime can use ERP posting APIs. The Java platform and its Rust worker own a separate application store. A real Studio browser session exercised checking and publishing source through the gateway, handling a stale draft and limiting a viewer to published metadata. See the [architecture decision](../vekoscript/adr/0002-java-platform-scope.md) and the [engineering checkpoint](implementation-progress.md).
 
 ## Reading the matrix
 
@@ -25,8 +25,10 @@ P0 covers financial integrity, tenant isolation, posting or a dependency that bl
 | OTC | [Sales and receivables API regressions](../../apps/api/test/order-to-cash.test.ts) and the [sales browser journey](../../apps/web/e2e/order-to-cash.spec.ts) |
 | PTP | [Procurement and payables API regressions](../../apps/api/test/purchasing.test.ts) and the [purchase browser journey](../../apps/web/e2e/procure-to-pay.spec.ts) |
 | CLOSE | [Dated aging and control reconciliation](../../apps/api/test/historical-aging.test.ts), [month-end browser journey](../../apps/web/e2e/period-close.spec.ts) and [recorded outcomes](implementation-progress.md) |
+| BANK-STMT | [Cash matching, consecutive periods and authorization](../../apps/api/test/bank-reconciliation.test.ts), [CSV import and clearing journey](../../apps/web/e2e/bank-reconciliation.spec.ts) and [B01–B05 acceptance gates](../testing/ecosystem-acceptance-criteria.md#bank-statement-reconciliation) |
+| DEPOSIT | [Grouped cash posting, retry, correction and isolation](../../apps/api/test/deposits.test.ts), [receipt-to-statement browser journey](../../apps/web/e2e/deposits.spec.ts) and [deposit acceptance gates](../testing/ecosystem-acceptance-criteria.md#grouped-bank-deposits) |
 | DETAIL | [Account-ledger API detail and cutoff tests](../../apps/api/test/account-ledger.test.ts). A 5,001-line period includes complete balances beyond one line's precision limit for both debit- and credit-normal accounts. |
-| RESTORE | [Local PostgreSQL restoration run](implementation-progress.md) covering 1,110 invoices, 2,319 entries and 9,067 journal lines. The post-sealing run matched 38 table and sequence fingerprints. |
+| RESTORE | [Local PostgreSQL restoration runs](implementation-progress.md). The post-sealing fixture with 9,067 journal lines matched 38 table and sequence fingerprints. The bank reconciliation fixture after migration 0007 matched 40. |
 | LOCK | [Concurrent close, reopening and zero-value inventory controls](../../apps/api/test/period-close.test.ts). See GL and MIG for journal membership sealing and upgrade from populated 0004 data. |
 | GL | [Ledger and database constraints](../../apps/api/test/ledger.test.ts) |
 | SEC | [Session, authorization and tenant boundaries](../../apps/api/test/security.test.ts) |
@@ -70,6 +72,7 @@ A reference identifies the comparable product area. Fine-grained acceptance cond
 
 - Sales supports single-order invoicing, payments, an unapplied credit balance and voiding an unpaid invoice. Shipment management, credit memos, returns and disbursement of a refund each require their own document and posting evidence.
 - Procurement supports stock receipt, matching a bill to received quantities, price variance, expense bills and paying vendors. Supplier selection, requisition approval and physical returns require separate workflows.
+- Bank reconciliation accepts up to 1,000 CSV transactions per statement. Each row matches one signed bank posting. The first opening balance assumes all earlier activity cleared. A deposit of up to 500 whole receipts produces one bank posting. General many-to-many clearing, OFX and provider feeds remain open.
 - An organization is the current ERP tenant. Group reporting requires explicit legal-entity rights, mappings and eliminations. Operating several separate organizations does not establish this capability.
 - A customer exemption flag and one organization sales-tax rate implement a limited calculation. Rate sourcing, dated rules, certificate lifecycle and external validation remain distinct work.
 - A VekoScript stock register records application-defined movements. Migrating inventory ownership requires a verified bridge to the ERP stock and General Ledger transaction boundary. Counts across both runtimes must include each business effect once.

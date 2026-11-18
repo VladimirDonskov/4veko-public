@@ -5,8 +5,8 @@ General Ledger, sales orders, invoicing, customer payments, purchasing, vendor b
 inventory in **one system of record**. Posting an invoice writes the receivable, revenue, sales tax, cost of goods sold, the
 stock movement and the audit record in a single database transaction.
 
-Status: **Release 0.1 foundation + Release 0.2 procure-to-pay**: working and tested, not
-production-ready.
+The implemented Release 0.2 workflows include purchasing, dated financial reports and
+bank statement reconciliation. Independent accounting review and production validation remain open.
 See the [engineering checkpoint](docs/product/implementation-progress.md) for the latest
 verified increment and the [ecosystem roadmap](docs/product/full-ecosystem-roadmap.md)
 for the remaining work.
@@ -85,6 +85,42 @@ And the buying side:
 
 Press **Ctrl/⌘ K** anywhere to search or run a command; `/` filters any table.
 
+### Group receipts into a bank deposit
+
+1. Record the customer payments to **Undeposited Funds**. When the bank accepts several
+   receipts as one deposit, open **Accounting → Bank Deposits → New deposit**.
+2. Choose the destination bank account and deposit date. Select the whole receipts on the
+   deposit slip, up to 500. Review the total and choose **Post deposit**. One journal entry
+   debits the bank and credits Undeposited Funds. Each receipt keeps its invoice applications.
+3. In **Bank Reconciliation**, match the bank's single statement transaction to the deposit's
+   bank journal line. The deposit links to its statement, original receipts and journal.
+
+To correct an unmatched deposit, open the deposit and choose **Void deposit**. Enter a
+reversal date in an open accounting period and a reason. The receipts become available
+for a new deposit from the reversal date. If the deposit is matched, remove the statement
+match first. An owner or administrator can reopen a closed statement for that correction.
+
+### Reconcile a bank statement
+
+Open **Bank Reconciliation → Import statement**. Select an active bank account, enter the
+bank's statement reference, dates and opening and closing balances, then upload a CSV with
+the following headers. Each transaction needs a stable bank reference. Deposits are positive
+and withdrawals are negative.
+
+```csv
+externalId,date,description,amount
+ACH-145,2026-03-05,Customer deposit,125.25
+CHK-104,2026-03-12,Check 104,-40.10
+```
+
+Start with a period whose opening balance already agrees with the books and whose prior
+transactions have cleared. Subsequent statements must start the day after the previous period.
+Reimporting the same statement returns its existing record. Match each row to a single
+posted bank journal line. The screen shows the outstanding book items and the difference
+between the ledger and the adjusted bank balance. Close when all bank rows match and the
+difference is zero. Closing the statement records the decision in the audit log. External
+bank feeds and OFX imports remain future work.
+
 ## Tests
 
 ```bash
@@ -97,7 +133,7 @@ npm run test:e2e
 
 The API suite covers ledger invariants, database-level immutability and period lock, three-way
 matching, dated AR/AP reconciliation, concurrent operations, tenant isolation and migrations.
-Playwright covers the sales, purchasing and period-close workflows, including accessibility
+Playwright covers the sales, purchasing, deposit, bank reconciliation and period-close workflows, including accessibility
 scans. Counts and environment details are in the [engineering checkpoint](docs/product/implementation-progress.md).
 See the [test plan](docs/testing/test-plan.md),
 [benchmarks](docs/testing/benchmark-results.md), [defects](replica/bugs.md).

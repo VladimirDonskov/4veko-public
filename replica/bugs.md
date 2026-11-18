@@ -57,3 +57,10 @@ S3 broken with workaround or visibly wrong · S4 cosmetic. Open S1: **0**. Open 
 | --- | --- | --- |
 | LIM-2 | Enter a dated bill or invoice, settle it in a later month and inspect the earlier cutoff. The amount disappeared from aging. Nineteen of the 24 targeted assertions failed against the original queries. | Net dated document, reversal and settlement movements in one report snapshot. `historical-aging.test.ts` covers credits, settlements, five buckets and second-tenant access. |
 | LIM-6 | Binary floating-point display and accumulation could discard valid cents on high-value journals. | Use the existing fixed-point helpers for journal totals and pass decimal strings directly to the currency formatter. The high-value document and ledger assertions live in `period-close.spec.ts`. |
+
+## November 18 bank reconciliation regressions
+
+| ID | Severity | Reproduction and correction |
+| --- | --- | --- |
+| BANK-1 | S2, fixed | A bodyless request to remove a match returned HTTP 400. The API accepts an absent body and also checks the expected journal line when supplied. The bank tests exercise both forms. |
+| BANK-2 | S2, fixed | A valid 1,000-line statement with 500 multibyte characters per description returned HTTP 413. The import route now accepts the JSON representation of the full supported statement. The regression imports it twice and checks the maximum row count. |

@@ -6,6 +6,7 @@ export const SEQUENCES = {
   salesOrder: { key: "SO", start: 1001 },
   invoice: { key: "INV", start: 1001 },
   payment: { key: "PMT", start: 1001 },
+  deposit: { key: "DEP", start: 1001 },
   adjustment: { key: "ADJ", start: 1001 },
   purchaseOrder: { key: "PO", start: 1001 },
   receipt: { key: "RCV", start: 1001 },

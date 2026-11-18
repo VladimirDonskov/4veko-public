@@ -1,5 +1,16 @@
 # Benchmark results
 
+## Bank statement reconciliation on November 18
+
+An authenticated single caller read one open USD statement with 1,000 bank lines and 1,000 unmatched ledger postings on PostgreSQL 18.6. Each bank line and posting was one cent and the descriptions were short. A duplicate import used the same complete statement and returned zero new rows. The timer included Fastify injection, session handling, PostgreSQL, serialization and JSON parsing. It excluded HTTP transport and browser rendering.
+
+| Operation | Samples | p50 | p95 | Maximum |
+| --- | ---: | ---: | ---: | ---: |
+| Statement detail | 50 | 13.7 ms | 19.8 ms | 22.0 ms |
+| Duplicate import | 50 | 7.9 ms | 12.3 ms | 17.4 ms |
+
+The table uses five warm-ups per operation on an idle machine. An earlier run overlapped the application build and regression tests and recorded a 496.9 ms detail p95 and an 11.3 ms duplicate-import p95. To recreate the data, import 1,000 uniquely referenced deposits of USD 0.01 with a USD 0.00 opening balance and a USD 10.00 closing balance. Post 1,000 equal debits to the selected bank during the statement period with balancing equity credits. Read the detail and replay the same import using one organization session.
+
 ## Dated closing reports on the November 18 engineering increment
 
 `apps/api/scripts/bench.ts` exercised the authenticated Fastify routes and PostgreSQL 18.6
