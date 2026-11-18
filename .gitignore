@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.next/
+next-env.d.ts
+*.tsbuildinfo
+.env
+.env.local
+.env.*.local
+coverage/
+playwright-report/
+test-results/
+apps/web/e2e/.auth/
+# Locally built Monaco editor and worker assets
+apps/web/public/monaco/

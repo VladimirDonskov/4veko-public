@@ -1,0 +1,14 @@
+[package]
+name = "vks-protocol"
+description = "Versioned messages between the VekoScript worker and the Java host"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+vks-syntax = { path = "../vks-syntax" }
+vks-metadata = { path = "../vks-metadata" }
+rust_decimal = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }

@@ -1,0 +1,3 @@
+# Test threads run the interpreter directly; give them the stack the engine expects.
+[env]
+RUST_MIN_STACK = "67108864"

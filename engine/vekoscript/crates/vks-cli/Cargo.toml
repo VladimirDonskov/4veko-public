@@ -1,0 +1,25 @@
+[package]
+name = "vks-cli"
+description = "VekoScript command-line tool and isolated execution worker"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "vks"
+path = "src/main.rs"
+
+[dependencies]
+vks-syntax = { path = "../vks-syntax" }
+vks-metadata = { path = "../vks-metadata" }
+vks-protocol = { path = "../vks-protocol" }
+vks-runtime = { path = "../vks-runtime" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+
+[dev-dependencies]
+vks-syntax = { path = "../vks-syntax" }
+vks-metadata = { path = "../vks-metadata" }
+

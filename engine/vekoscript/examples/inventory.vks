@@ -1,0 +1,86 @@
+// Inventory receiving: the first complete VekoScript application.
+// Metadata declares what exists; handlers say what happens when documents post.
+
+catalog Products {
+    field code: String(20) required unique;
+    field name: String(200) required;
+    field unit: String(10) default "ea";
+    field price: Decimal(18, 2) default 0;
+    field active: Boolean default true;
+}
+
+catalog Warehouses {
+    field code: String(20) required unique;
+    field name: String(200) required;
+}
+
+catalog Suppliers {
+    field code: String(20) required unique;
+    field name: String(200) required;
+    field paymentTermsDays: Integer default 30;
+}
+
+document GoodsReceipt {
+    field warehouse: Ref<Warehouses> required;
+    field supplier: Ref<Suppliers> required;
+    field supplierInvoice: String(40);
+    field total: Decimal(18, 2);
+
+    rows items {
+        field product: Ref<Products> required;
+        field quantity: Decimal(18, 3) required;
+        field unitPrice: Decimal(18, 2) required;
+        field amount: Decimal(18, 2);
+    }
+}
+
+register StockBalance {
+    dimension product: Ref<Products>;
+    dimension warehouse: Ref<Warehouses>;
+    measure quantity: Decimal(18, 3);
+    measure amount: Decimal(18, 2);
+}
+
+function lineAmount(quantity, unitPrice) {
+    return round(quantity * unitPrice, 2);
+}
+
+// Validation: runs before saving; may fill computed fields.
+on GoodsReceipt.BeforeSave(document) {
+    let total = 0.00;
+    for item in document.items {
+        if item.quantity <= 0 {
+            reject("Quantity must be greater than zero for " + item.product.code + ".");
+        }
+        item.amount = lineAmount(item.quantity, item.unitPrice);
+        total += item.amount;
+    }
+    document.total = total;
+}
+
+// Validation: runs before posting, inside the posting transaction.
+on GoodsReceipt.BeforePost(document) {
+    if document.items.count() == 0 {
+        reject("Cannot post an empty receipt.");
+    }
+    if document.supplier.deleted {
+        reject("The supplier " + document.supplier.name + " is archived.");
+    }
+}
+
+// Posting: produces register movements; the platform validates and applies them atomically.
+on GoodsReceipt.Post(document) {
+    for item in document.items {
+        Register.StockBalance.increase(
+            product: item.product,
+            warehouse: document.warehouse,
+            quantity: item.quantity,
+            amount: item.amount
+        );
+    }
+}
+
+// After commit: runs once the posting is durable (delivered through the outbox).
+on GoodsReceipt.AfterPost(document) {
+    notify("Received " + str(document.items.count()) + " line(s) into " + document.warehouse.name + ".");
+}

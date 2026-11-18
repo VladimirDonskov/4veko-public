@@ -1,0 +1,33 @@
+server:
+  port: ${VKS_PORT:8090}
+
+spring:
+  application:
+    name: vekoscript-platform
+  datasource:
+    url: ${VKS_DB_URL:jdbc:postgresql://localhost:5433/vekoscript}
+    username: ${VKS_DB_USER:veko}
+    # Local development default only (matches docker-compose.yml); set VKS_DB_PASSWORD elsewhere.
+    password: ${VKS_DB_PASSWORD:veko_dev_password}
+  flyway:
+    enabled: true
+
+vks:
+  worker:
+    # Path to the vks binary; empty means <engine-dir>/target/{release,debug}/vks.
+    command: ${VKS_WORKER:}
+    engine-dir: ${VKS_ENGINE_DIR:../engine/vekoscript}
+    pool-size: ${VKS_WORKERS:4}
+    timeout-ms: ${VKS_SCRIPT_TIMEOUT_MS:10000}
+    acquire-timeout-ms: 5000
+    max-memory-mb: 512
+  security:
+    jwt-secret: ${VKS_JWT_SECRET:}
+    roles:
+      admin: ["*"]
+      clerk: [catalog.read, catalog.write, document.read, document.write, document.post, register.read]
+      viewer: [catalog.read, document.read, register.read]
+
+logging:
+  level:
+    com.fourveko: INFO

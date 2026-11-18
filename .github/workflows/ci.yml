@@ -1,0 +1,57 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: veko
+          POSTGRES_PASSWORD: veko_dev_password
+          POSTGRES_DB: veko
+        ports: ["5433:5432"]
+        options: >-
+          --health-cmd "pg_isready -U veko -d veko"
+          --health-interval 2s --health-timeout 3s --health-retries 30
+    env:
+      DATABASE_URL: postgres://veko:veko_dev_password@localhost:5433/veko
+      TEST_DATABASE_URL: postgres://veko:veko_dev_password@localhost:5433/veko_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Check production dependencies
+        run: npm audit --omit=dev --audit-level=high
+      - name: Create the test database
+        run: PGPASSWORD=veko_dev_password psql -h localhost -p 5433 -U veko -d veko -c "create database veko_test"
+      - run: npm run typecheck
+      - name: API unit, integration, invariant and security tests
+        run: npm test
+      - name: Build
+        run: npm run build
+      - name: Run end-to-end tests against a migrated ERP database
+        run: |
+          npm run db:migrate
+          npx playwright install --with-deps chromium
+          npm run test:e2e
+      - name: Restore the browser fixture and verify its records and postings
+        env:
+          PG_SERVICE: ${{ job.services.postgres.id }}
+        run: |
+          set -euo pipefail
+          docker exec "$PG_SERVICE" pg_dump -U veko -Fc --no-owner --no-acl veko > "$RUNNER_TEMP/erp.dump"
+          docker exec "$PG_SERVICE" createdb -U veko veko_restore
+          docker exec -i "$PG_SERVICE" pg_restore -U veko --no-owner --no-acl --single-transaction --exit-on-error -d veko_restore < "$RUNNER_TEMP/erp.dump"
+          for db in veko veko_restore; do
+            docker exec -i "$PG_SERVICE" psql -X -qAt -v ON_ERROR_STOP=1 -U veko -d "$db" < apps/api/scripts/restore-fingerprint.sql > "$RUNNER_TEMP/$db.signature"
+          done
+          diff -u "$RUNNER_TEMP/veko.signature" "$RUNNER_TEMP/veko_restore.signature"

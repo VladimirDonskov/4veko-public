@@ -1,0 +1,29 @@
+{
+  "name": "4veko",
+  "private": true,
+  "version": "0.1.0",
+  "description": "4VEKO: an English-first business management platform (accounting, sales, inventory).",
+  "workspaces": [
+    "apps/*"
+  ],
+  "overrides": {
+    "dompurify": "3.4.18"
+  },
+  "devDependencies": {
+    "monaco-editor": "0.57.0"
+  },
+  "scripts": {
+    "db:up": "docker compose up -d db",
+    "db:migrate": "npm run db:migrate -w @4veko/api",
+    "db:seed": "npm run db:seed -w @4veko/api",
+    "dev:api": "npm run dev -w @4veko/api",
+    "dev:web": "npm run dev -w @4veko/web",
+    "build": "npm run build -w @4veko/api && npm run build -w @4veko/web",
+    "typecheck": "npm run typecheck -w @4veko/api && npm run typecheck -w @4veko/web",
+    "test": "npm run test -w @4veko/api",
+    "test:e2e": "npm run test:e2e -w @4veko/web"
+  },
+  "engines": {
+    "node": ">=22.12"
+  }
+}

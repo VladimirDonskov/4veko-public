@@ -1,0 +1,46 @@
+// A short tour of VekoScript. Run it with:  vks run examples/tour.vks
+
+// Exact decimals: no binary floating point anywhere.
+let subtotal = 0.1 + 0.2;
+log(format("0.1 + 0.2 = {0} (equal to 0.3: {1})", subtotal, subtotal == 0.3));
+
+// Integer division gives a Decimal; rounding is always explicit.
+let share = 100 / 3;
+log("100 / 3 = " + str(share) + ", rounded: " + str(round(share, 2)));
+log("Half away from zero: " + str(round(2.345, 2)) + "; banker's: " + str(round(2.345, 2, "even")));
+
+// Functions, named arguments and early returns.
+function lineTotal(quantity, unitPrice, discount) {
+    if discount < 0 || discount > 1 {
+        reject("A discount is between 0 and 1.");
+    }
+    return round(quantity * unitPrice * (1 - discount), 2);
+}
+log("Line total: " + str(lineTotal(3, 19.99, discount: 0.1)));
+
+// Collections.
+let lines = [
+    { sku: "A-1", quantity: 2, price: 10.50 },
+    { sku: "B-7", quantity: 1, price: 99.00 },
+    { sku: "C-3", quantity: 5, price: 1.25 }
+];
+let total = 0.00;
+let skus = [];
+for line in lines {
+    total += lineTotal(line.quantity, line.price, discount: 0);
+    skus.add(line.sku);
+}
+log(format("{0} lines, SKUs {1}, total {2}", lines.count(), skus.join("/"), total));
+
+// Dates, durations and money.
+let invoiceDate = date("2026-10-28");
+let due = invoiceDate + days(30);
+log("Due " + str(due) + ", a " + str(due.dayOfWeek()) + " (1 = Monday); month ends " + str(due.endOfMonth()));
+let fee = money(12.50, "USD") * 3;
+log("Fee: " + str(fee));
+
+// No truthiness and no silent coercion: these would be errors, not surprises.
+//   if total { }          -> VKS4002: a condition must be Boolean
+//   "Total: " + total     -> VKS4001: convert with str(total) or format()
+
+return { total: total, due: due, fee: fee };

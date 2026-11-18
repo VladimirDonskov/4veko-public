@@ -1,0 +1,93 @@
+name: VekoScript
+
+on:
+  push:
+    branches: [main]
+    paths: ["engine/**", "backend/**", "apps/api/src/**", "apps/web/**", "package*.json", ".github/workflows/vekoscript.yml"]
+  pull_request:
+    paths: ["engine/**", "backend/**", "apps/api/src/**", "apps/web/**", "package*.json", ".github/workflows/vekoscript.yml"]
+
+jobs:
+  engine:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: engine/vekoscript
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+      - run: cargo fmt --all -- --check
+      - run: cargo clippy --workspace --all-targets -- -D warnings
+      - run: cargo test --workspace
+      - run: cargo build --release -p vks-cli
+      - run: target/release/vks bench --quick
+
+  platform:
+    needs: engine
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: veko
+          POSTGRES_PASSWORD: veko_dev_password
+          POSTGRES_DB: veko
+        ports: ["5433:5432"]
+        options: >-
+          --health-cmd "pg_isready -U veko -d veko"
+          --health-interval 2s --health-timeout 3s --health-retries 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build the worker used by platform integration tests
+        working-directory: engine/vekoscript
+        run: cargo build --locked --release -p vks-cli
+      - run: chmod +x backend/mvnw
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+      - name: Create the test database
+        run: PGPASSWORD=veko_dev_password psql -h localhost -p 5433 -U veko -d veko -c "create database vekoscript_test"
+      - name: Platform integration tests (real PostgreSQL, real worker)
+        working-directory: backend
+        run: ./mvnw -B package
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Prepare ERP and Studio browser fixtures
+        run: |
+          PGPASSWORD=veko_dev_password createdb -h localhost -p 5433 -U veko vekoscript_studio
+          npm ci
+          npm run db:migrate
+          npm run build
+          npx playwright install --with-deps chromium
+      - name: Author and publish through Studio, Fastify, Spring and the Rust worker
+        env:
+          VKS_DB_URL: jdbc:postgresql://localhost:5433/vekoscript_studio
+          VKS_PLATFORM_URL: http://127.0.0.1:8090
+          VKS_ENGINE_DIR: ${{ github.workspace }}/engine/vekoscript
+          HOST: 127.0.0.1
+          HOSTNAME: 127.0.0.1
+          NODE_OPTIONS: --dns-result-order=ipv4first
+        run: |
+          set -euo pipefail
+          export VKS_JWT_SECRET="$(openssl rand -hex 32)"
+          java -jar backend/target/vekoscript-platform-*.jar > "$RUNNER_TEMP/studio-java.log" 2>&1 &
+          java_pid=$!
+          node apps/api/dist/index.js > "$RUNNER_TEMP/studio-api.log" 2>&1 &
+          api_pid=$!
+          web=apps/web/.next/standalone/apps/web
+          cp -R apps/web/public "$web/"
+          cp -R apps/web/.next/static "$web/.next/"
+          node "$web/server.js" > "$RUNNER_TEMP/studio-web.log" 2>&1 &
+          web_pid=$!
+          trap 'kill "$web_pid" "$api_pid" "$java_pid" 2>/dev/null || true' EXIT
+          for url in http://127.0.0.1:8090/health http://127.0.0.1:4000/api/health http://127.0.0.1:3000/login; do
+            curl --fail --silent --show-error --retry 30 --retry-connrefused --retry-delay 1 "$url" > /dev/null
+          done
+          npm run test:studio -w @4veko/web

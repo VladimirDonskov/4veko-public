@@ -1,0 +1,25 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/vks-syntax",
+    "crates/vks-metadata",
+    "crates/vks-protocol",
+    "crates/vks-runtime",
+    "crates/vks-cli",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "UNLICENSED"
+publish = false
+
+[workspace.dependencies]
+rust_decimal = { version = "1", default-features = false, features = ["std", "serde-with-str"] }
+serde = { version = "1", features = ["derive", "rc"] }
+serde_json = "1"
+chrono = { version = "0.4", default-features = false, features = ["std", "clock", "serde"] }
+
+[profile.release]
+lto = "thin"
+codegen-units = 1

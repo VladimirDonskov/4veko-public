@@ -1,0 +1,40 @@
+# 4VEKO ecosystem delivery roadmap
+
+The first release decision concerns financial reporting. A bookkeeper closing October must be able to reconstruct October 31 receivables and payables after November payments arrive. A report that uses today's open balances can change a prior-period close. Correct historical aging and compare it to the dated control accounts before introducing more document types that affect those balances.
+
+The [release roadmap](roadmap.md) records the original 0.1 and 0.2 scope. The [functional matrix](1c-functional-parity.md) covers the expanded scope. Use the [engineering checkpoint](implementation-progress.md) for the latest run against a particular revision and the [acceptance criteria](../testing/ecosystem-acceptance-criteria.md) for evidence weights.
+
+## Dependency and release gates
+
+| Wave | Deliverable in business terms | Exit evidence |
+| --- | --- | --- |
+| 1 · Stabilize | Keep the two ERP posting journeys working. Make liabilities, receivables and discrepancies reproducible on a business date. Preserve existing runtime behavior during gateway work. | A cutoff fixture exercises later payments, voids, backdated activity and both organizations. API, browser and data assertions agree. Source transactions, ledger and stock reconcile or expose a difference. The checkpoint records suites, migrations and open defects. |
+| 2 · Core ERP | Close the month from sales, purchasing, inventory, cash and tax records. Add document-level correction and bank statement matching, additional locations and fiscal periods. Introduce entity and currency context before extending reports to groups. | An accountant can trace invoice, return, payment and statement item to postings. Duplicate imports and concurrent retries produce one financial effect. Stock transfer conserves quantity and value. A multi-currency fixture records rate, rounding and FX difference. |
+| 3 · Configurable platform | A developer defines an object, fields, lines, validation, posting, permissions, forms and report definition. A tenant can preview and install a versioned upgrade. | A sample independent application passes check, consent, migration rehearsal, create/edit/post/reverse, rollback after failure and cross-tenant denial. Worker failure leaves no financial effects. A release fixture exercises an earlier package against the supported runtime. |
+| 4 · Operations | CRM hands a won sale to the existing customer and ordering flow. Project time and purchasing feed billing and costing. Stock lots, documents, retail and production consume the same inventory and posting owners. | A sale from CRM, a billed project milestone, a refunded retail order and a manufacturing issue/receipt each reconcile to their source. Attachments enforce access on download. Manufacturing output relieves WIP with explainable variance. |
+| 5 · Enterprise controls | Record approved payroll journals, company budgets, intercompany balances, elimination entries, maintenance work and shipments. Offer governed analytical views. | A synthetic payroll scenario is independently reviewed for its named ruleset. A group fixture ties subsidiary books to translated and eliminated totals. Work-order and freight costs drill down to sources. Analytics respects entity and employee access rules. |
+| 6 · Ecosystem delivery | Distribute signed extensions through a reviewed marketplace, run isolated Studio environments, ship selected provider adapters and industry applications. Support a documented cloud or self-hosted recovery procedure. | Installing a compatible package into one tenant leaves a second tenant unaffected. An incompatible upgrade is rejected before data changes. Offline replay, provider replay, restore rehearsal, alert delivery and an industry-specific acceptance scenario each have evidence. |
+
+These are release gates. Metadata primitives can advance during Waves 1 and 2 where an application needs them. The single financial write path remains a dependency of any extension that affects actual books.
+
+## Near-term engineering order
+
+| Order | Increment | Acceptance boundary |
+| --- | --- | --- |
+| 1 | Historical AR and AP aging | Use an inclusive business date. Exclude documents from later dates. Reconstruct applications and voids at the selected date. Keep current report contracts and the detailed/export views in agreement. |
+| 2 | Dated AR/AP control reconciliation | Show both subledger and GL amounts with a signed difference. Include unapplied receipts in net AR. Expose an unexplained manual control-account entry. Maintain tenant filtering and link to the underlying evidence. |
+| 3 | Complete and protect the close | A large control account must drill down to the same closing total even when its rows are paged. Serialize a close against concurrent postings, including zero-value stock movements. Freeze a posted entry's line membership and verify that a failed operation leaves every affected table intact. |
+| 4 | Bank statement reconciliation | Start with manual or CSV statement entry against an existing bank account. Persist stable source identities, outstanding ledger items and dated clearing decisions. Accept a statement close only when opening balance plus cleared activity equals ending balance. Exercise duplicate imports, reopening rights and tenant isolation. |
+| 5 | Corrections and inventory provenance | Add customer credit memos and returns, then supplier credit and return documents. Link quantities, tax and journal reversals to the original lines. Reconcile the unaffected portion of a partially returned order. |
+| 6 | Count and transfer stock | Create an origin/destination movement pair and check tenant ownership of every location. Concurrent transfers must conserve quantity and value, including rounding to the final cent. Add count-review-post after the movement model is proven. |
+| 7 | Versioned tax and currency | Introduce persisted jurisdiction and rate-version provenance, exemptions and external-provider contract fixtures. Make translated source and functional amounts available before FX reports or consolidation. Gate real filing and payroll on qualified review. |
+
+The live Studio acceptance now covers source checking, reviewed publication, version conflicts and read-only metadata browsing through the tenant gateway. The next platform increment needs an isolated place to exercise a candidate application. Before introducing a financial host function, choose an owner that can commit each business document, journal, stock effect and audit record in one authoritative transaction. Test lost responses, stale revisions and failed worker execution. The [dependency map](module-dependency-map.md) identifies owners.
+
+## Decisions needed at expansion boundaries
+
+- **Working classes of operations.** A US service firm exercises quotes, time, milestone billing and collections. A wholesaler exercises receipts, shipments, stock valuation and returns. Use both fixtures before generalizing the metadata API.
+- **Reporting ownership.** Analysts can build on typed, permission-filtered measures once reconciliation is reproducible. Give finance staff the source documents and period context needed to explain a difference.
+- **Compliance scope.** Choose a jurisdiction, rule source, effective date corpus and qualified reviewer before treating any automated tax or payroll result as verified. Provide provider contract fixtures independently of live credentials.
+- **Operational readiness.** Demonstrate backup restoration for both stores, previous-version upgrade, least-privilege service identities and alert recovery on the target deployment. Record the version and target environment with the evidence.
+- **Industry priority.** Select each new reusable package by an actual customer scenario and record the shared platform dependencies it proves. The matrix contains eleven candidate industries with an acceptance action for each.

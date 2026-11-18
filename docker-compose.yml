@@ -1,0 +1,50 @@
+name: veko
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: veko
+      POSTGRES_PASSWORD: veko_dev_password
+      POSTGRES_DB: veko
+    ports:
+      - "5433:5432"
+    volumes:
+      - veko-db:/var/lib/postgresql/data
+      - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U veko -d veko"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    profiles: ["app"]
+    environment:
+      DATABASE_URL: postgres://veko:veko_dev_password@db:5432/veko
+      WEB_ORIGIN: http://localhost:3000
+      NODE_ENV: production
+      COOKIE_SECURE: "false"
+    ports:
+      - "4000:4000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        API_URL: http://api:4000
+    profiles: ["app"]
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
+volumes:
+  veko-db:

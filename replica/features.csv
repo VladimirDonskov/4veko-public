@@ -1,0 +1,49 @@
+feature,area,priority,original,clone,notes
+Sign up and create an organization,onboarding,must,yes,yes,1C is partner-implemented (S1 S6); self-serve is our addition to the same job; built and tested in MVP
+Users with roles and access rights,platform,must,yes,yes,access rights by role (S5); built and tested in MVP
+Customer master data with balances,master data,must,yes,yes,catalogs and settlements (S5 S17); built and tested in MVP
+Vendor master data,master data,must,yes,yes,catalogs (S5); built and tested in MVP
+Products and services catalog,master data,must,yes,yes,catalogs and item kinds (S5 S2); built and tested in MVP
+Chart of Accounts,accounting,must,yes,yes,accounting registers (S5) and accounting (S15); built and tested in MVP
+Double-entry General Ledger with manual journal entries,accounting,must,yes,yes,accounting records (S15); entry mechanics inferred; built and tested in MVP
+Reversal of posted entries,accounting,must,yes,yes,reverse expenses and income (S3); built and tested in MVP
+Period close / books lock,accounting,must,yes,yes,month-end closing (S3 S15); built and tested in MVP
+Sales orders,sales,must,yes,yes,sale orders (S2 S7); built and tested in MVP
+Invoices posted to receivables and revenue,sales,must,yes,yes,invoices as documents (S5); built and tested in MVP
+Customer payments applied to invoices,cash,must,yes,yes,bank and cash and settlement control (S17); built and tested in MVP
+Inventory on hand and stock adjustments,inventory,must,yes,yes,inventory and warehouse (S1); built and tested in MVP
+Inventory cost of goods sold on sale,inventory,must,yes,yes,cost of goods sold allocation (S3); built and tested in MVP
+Financial statements (trial balance P&L balance sheet),reporting,must,yes,yes,balance sheet and income reports (S3); built and tested in MVP
+Receivables aging,reporting,must,yes,yes,historical issue and payment and reversal cutoffs; historical-aging.test.ts
+KPI dashboard,reporting,must,yes,yes,dashboard (S1); built and tested in MVP
+Audit trail of user activity,platform,must,yes,yes,activity analysis (S5); built and tested in MVP
+Global search and command palette,platform,must,no,yes,our addition; not described on pages read; built and tested in MVP
+Purchase orders and vendor bills,procurement,should,yes,yes,POs and vendor invoices (S3); Release 0.2: receiving with three-way match and price variance
+Payables and bill payments,procurement,should,yes,yes,supplier settlements (S17); bill payments and historical AP aging; purchasing.test.ts and historical-aging.test.ts
+Multiple warehouses and transfers,inventory,should,yes,partial,schema and API support locations; UI uses one default warehouse; no transfers yet
+Bank reconciliation and bank import,cash,should,yes,no,bank exchange (S13)
+Partial invoicing credit notes and quotes,sales,should,yes,no,inferred standard practice
+Sales tax by jurisdiction,tax,should,yes,no,tax calculation (S15) for Russian regimes; US engine via integration
+Custom fields on records,platform,should,yes,no,configuration objects low-code (S5)
+Approval workflows and spending limits,platform,should,yes,no,payment limits (S4)
+REST API with OpenAPI and webhooks,integration,should,yes,partial,REST + OpenAPI at /api/docs done; webhooks and API keys not built
+CSV import and export,integration,should,yes,partial,CSV export on reports only; no import
+Saved report views and export,reporting,should,yes,partial,saved table views (per browser) and report CSV/print; no server-side saved reports
+Document attachments,documents,should,yes,no,document management product (S11)
+Mobile-friendly access,platform,should,yes,partial,responsive web tested at phone width; no native app or offline mode
+FIFO lots batches and serials,inventory,could,yes,no,lot accounting FIFO (S3) batch reports (S2)
+Multiple companies and intercompany,accounting,could,yes,no,intercompany (S3 S16)
+Consolidation and eliminations,accounting,could,yes,no,1C:Perform (S9)
+Multi-currency documents,accounting,could,yes,no,scenario currencies (S4)
+Budgets and plan versus actual,budgeting,could,yes,no,budgeting (S4)
+Fixed asset register and depreciation,assets,could,yes,no,asset dimensions (S3)
+Bills of materials and work orders,manufacturing,could,yes,no,production subsystem (S2 S8)
+Production scheduling and MES,manufacturing,could,yes,no,MES (S2)
+Leads and sales pipeline,crm,could,yes,no,pipeline (S7)
+Employee records,hr,could,yes,no,HR records (S18)
+Payroll processing,payroll,could,yes,no,payroll (S18); US payroll via provider integration first
+Projects and job costing,projects,could,yes,no,work tasks and acts (S17)
+AI assistant for reports and search,ai,could,no,no,our addition
+Russian statutory reporting and e-filing,tax,could,yes,skip,not relevant to the US market
+Proprietary scripting language and IDE,platform,could,yes,partial,Rust language and Java host; Studio check and versioned publish tested in Chromium; form designer and isolated candidate environments pending
+AR and AP control account reconciliation,reporting,should,yes,yes,dated GL compared to customer and vendor subledgers; signed differences and drill-down; public capability index in docs/product/1c-functional-parity.md

@@ -1,0 +1,16 @@
+[package]
+name = "vks-runtime"
+description = "VekoScript semantic analysis and sandboxed interpreter"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+publish.workspace = true
+
+[dependencies]
+vks-syntax = { path = "../vks-syntax" }
+vks-metadata = { path = "../vks-metadata" }
+vks-protocol = { path = "../vks-protocol" }
+rust_decimal = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }

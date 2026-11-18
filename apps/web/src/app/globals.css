@@ -1,0 +1,126 @@
+@import "tailwindcss";
+
+/* Theme is chosen by a class on <html> (user choice, falling back to the OS). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Design tokens: replica/design/tokens.json (light) and tokens-dark.json (dark).
+   Components use these roles only; never raw hex. */
+:root {
+  --bg: #ffffff;
+  --surface: #f6f7f5;
+  --surface-2: #eceee9;
+  --border: #e1e4de;
+  --border-input: #848b84;
+  --text: #161a17;
+  --text-muted: #59615b;
+  --accent: #0b6e5f;
+  --accent-hover: #095a4e;
+  --accent-soft: #e3f2ee;
+  --on-accent: #ffffff;
+  --danger: #b42318;
+  --danger-soft: #fdecea;
+  --success: #1d6f42;
+  --success-soft: #e6f4ea;
+  --warning: #8a5300;
+  --warning-soft: #fdf1dc;
+  --info: #1f5fad;
+  --info-soft: #e7effa;
+  --focus: #0b6e5f;
+  --shadow-card: 0 1px 2px rgba(22, 26, 23, 0.05);
+  --shadow-pop: 0 12px 32px rgba(22, 26, 23, 0.16), 0 2px 6px rgba(22, 26, 23, 0.08);
+  color-scheme: light;
+}
+
+:root.dark {
+  --bg: #0f1211;
+  --surface: #161a18;
+  --surface-2: #1e2321;
+  --border: #2b312e;
+  --border-input: #737c76;
+  --text: #e8ece9;
+  --text-muted: #a3aca6;
+  --accent: #3dbfa5;
+  --accent-hover: #5fd0b9;
+  --accent-soft: #123029;
+  --on-accent: #04201a;
+  --danger: #f97a6c;
+  --danger-soft: #3a1714;
+  --success: #5cc98a;
+  --success-soft: #13301f;
+  --warning: #f2b544;
+  --warning-soft: #33260c;
+  --info: #7fb0f0;
+  --info-soft: #14243a;
+  --focus: #3dbfa5;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-pop: 0 12px 32px rgba(0, 0, 0, 0.5);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-border-input: var(--border-input);
+  --color-fg: var(--text);
+  --color-muted: var(--text-muted);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-on-accent: var(--on-accent);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-focus: var(--focus);
+  --font-sans: var(--font-inter), system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --shadow-card: var(--shadow-card);
+  --shadow-pop: var(--shadow-pop);
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 22px;
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* Links inside running text are underlined, never told apart by color alone (WCAG 1.4.1). */
+p a,
+dd a {
+  text-decoration-line: underline;
+  text-underline-offset: 2px;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

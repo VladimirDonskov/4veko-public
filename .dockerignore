@@ -1,0 +1,12 @@
+**/node_modules
+**/.next
+apps/web/public/monaco
+**/dist
+**/.env
+**/.env.*
+!**/.env.example
+**/test-results
+**/playwright-report
+.git
+docs
+replica
